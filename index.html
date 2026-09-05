@@ -13644,8 +13644,8 @@ function initMonitoringCharts() {
   /* ── Groq model list (fallback chain) ────────────────── */
   var GROQ_MODELS = [
     'llama-3.3-70b-versatile',
-    'llama3-70b-8192',
-    'mixtral-8x7b-32768'
+    'llama-3.1-70b-versatile',
+    'llama-3.1-8b-instant'
   ];
   var _groqModelIdx = 0;
 
@@ -13964,7 +13964,7 @@ function initMonitoringCharts() {
     provider   : 'groq',
     endpoint   : 'https://tqkycfqnujrnbxkdcnds.supabase.co/functions/v1/quick-handler',
     apiKey     : '',
-    models     : ['llama-3.3-70b-versatile', 'llama3-70b-8192', 'mixtral-8x7b-32768'],
+    models     : ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'llama-3.1-8b-instant'],
     _modelIdx  : 0,
     maxTokens  : 1500,
     temperature: 0.45,
