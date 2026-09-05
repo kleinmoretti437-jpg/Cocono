@@ -13768,7 +13768,8 @@ function initMonitoringCharts() {
     return fetch(GROQ_ENDPOINT, {
       method : 'POST',
       headers: {
-        'Content-Type' : 'application/json'
+        'Content-Type' : 'application/json',
+        'apikey'       : 'sb_publishable_FnnCS2E5zC649byRN-qB3g_kfKqgWxO'
       },
       body: JSON.stringify({
         model      : model,
@@ -13977,7 +13978,8 @@ function initMonitoringCharts() {
       fetch(self.endpoint, {
         method : 'POST',
         headers: {
-          'Content-Type' : 'application/json'
+          'Content-Type' : 'application/json',
+          'apikey'       : 'sb_publishable_FnnCS2E5zC649byRN-qB3g_kfKqgWxO'
         },
         body: JSON.stringify({
           model      : model,
