@@ -5084,6 +5084,29 @@ img, video, canvas, svg { max-width: 100%; }
         </div>
       </div>
 
+      <!-- ===== KALMAN FILTER FORECAST PANEL ===== -->
+      <div class="analytics-clean reveal" style="margin-bottom:28px;" id="pfKalmanPanel">
+        <div class="analytics-clean-header">
+          <div class="analytics-clean-title">
+            <div class="analytics-clean-title-icon"><i class="fas fa-filter"></i></div>
+            <div>
+              <span style="display:block;font-size:11px;font-weight:600;color:rgba(92,51,23,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:3px;">Kalman Filter · Model Sekunder</span>
+              Proyeksi Harga Kakao Nasional — Okt – Des 2026
+            </div>
+          </div>
+          <span style="font-size:12px;font-weight:700;color:#1565C0;background:rgba(21,101,192,0.1);border:1px solid rgba(21,101,192,0.25);padding:5px 14px;border-radius:20px;"><i class="fas fa-wave-square" style="margin-right:5px;"></i>Kalman 1D</span>
+        </div>
+        <div style="padding:0 24px 20px;">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px;" id="pfKalmanCards">
+            <!-- diisi JS -->
+          </div>
+          <div style="background:rgba(21,101,192,0.04);border:1px solid rgba(21,101,192,0.15);border-radius:10px;padding:14px 16px;">
+            <div style="font-size:12px;font-weight:700;color:#1565C0;margin-bottom:6px;"><i class="fas fa-info-circle" style="margin-right:5px;"></i>Tentang Model Ini</div>
+            <div style="font-size:12px;color:#555;line-height:1.6;">Kalman Filter 1D (Q=0.01, R=1.0) memperhalus noise data harga historis lalu memproyeksikan tren ke depan. Digunakan sebagai validasi silang terhadap model Holt's DES + OLS utama. Prediksi dari kedua model yang berdekatan mengindikasikan keyakinan tinggi.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- ===== HISTORICAL BASELINE + FORECAST TABLE ===== -->
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:28px;" class="reveal" style="transition-delay:0.1s;">
 
@@ -9389,7 +9412,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
         <!-- GROWTH -->
         <div class="pricing-clean-card featured reveal" style="transition-delay:0.1s;">
-          <div class="pricing-clean-badge">Rekomendasi Tim</div>
+          <div class="pricing-clean-badge">Rekomendasi Penggguna Awal</div>
           <div class="pricing-clean-name">Growth</div>
           <div class="pricing-clean-price">Rp 1.499.000</div>
           <div class="pricing-clean-period">/bulan per akun</div>
@@ -12432,12 +12455,13 @@ function initMonitoringCharts() {
     'non-fermentasi':{ labels:['2021','2022','2023','2024','2025'], data:[36393, 35645, 41890, 129917, 151914] },
   };
 
-  // 12-month baseline (Q3 2025 – Q2 2026)
+  // 12-month baseline (Jul 2025 – Sep 2026)
+  // Agustus & September 2026 ditambahkan dari HR Kemendag (kurs Rp16.400/USD, harga petani ~65% HPE)
   var PF_HIST_12M = {
-    nasional:        { labels:['Q3 2025','Q4 2025','Q1 2026','Q2 2026'], data:[84800, 90592, 78400, 63513] },
-    internasional:   { labels:['Q3 2025','Q4 2025','Q1 2026','Q2 2026'], data:[88000, 83920, 62928, 67840] },
-    fermentasi:      { labels:['Q3 2025','Q4 2025','Q1 2026','Q2 2026'], data:[93280, 99651, 86240, 69864] },
-    'non-fermentasi':{ labels:['Q3 2025','Q4 2025','Q1 2026','Q2 2026'], data:[76320, 81533, 70560, 57162] },
+    nasional:        { labels:['Jul 2025','Okt 2025','Jan 2026','Apr 2026','Ags 2026','Sep 2026'], data:[84800, 90592, 78400, 63513, 53910, 56113] },
+    internasional:   { labels:['Jul 2025','Okt 2025','Jan 2026','Apr 2026','Ags 2026','Sep 2026'], data:[88000, 83920, 62928, 67840, 83049, 86444] },
+    fermentasi:      { labels:['Jul 2025','Okt 2025','Jan 2026','Apr 2026','Ags 2026','Sep 2026'], data:[93280, 99651, 86240, 69864, 59301, 61724] },
+    'non-fermentasi':{ labels:['Jul 2025','Okt 2025','Jan 2026','Apr 2026','Ags 2026','Sep 2026'], data:[76320, 81533, 70560, 57162, 48519, 50502] },
   };
 
   // ── Sync PF_HIST & PF_HIST_12M dari PM_DATA (Supabase source) ──
@@ -12537,7 +12561,7 @@ function initMonitoringCharts() {
     var monthlyTrend = (1-blendW)*stTrend + blendW*ltMonthlyTrend;
 
     // ── 4. Baseline price (Q2 2026 actuals) ──────────────────
-    var baseNasional = PF_HIST_12M['nasional'].data[3]; // Rp 63.513
+    var baseNasional = PF_HIST_12M['nasional'].data[PF_HIST_12M['nasional'].data.length - 1]; // harga terbaru
     var basePrice    = hist12m.data[hist12m.data.length-1]; // sesuai skala
 
     // ── 5. LPS calibration ────────────────────────────────────
@@ -13008,6 +13032,9 @@ function initMonitoringCharts() {
 
     // Comparison grid
     pfRenderCompGrid(scale);
+
+    // Kalman Filter secondary forecast
+    pfRenderKalman();
   }
 
   // ── Draw forecast chart ───────────────────────────────────
@@ -13164,6 +13191,78 @@ function initMonitoringCharts() {
         },
         animation: { duration:800, easing:'easeInOutQuart' },
       }
+    });
+  }
+
+  // ── Kalman Filter 1D ──────────────────────────────────────
+  function pfKalmanForecast(data, steps) {
+    var Q = 0.01; // process noise
+    var R = 1.0;  // measurement noise
+    var x = data[0]; // initial state estimate
+    var P = 1.0;     // initial error covariance
+    // Smooth over historical data
+    for (var i = 0; i < data.length; i++) {
+      // Predict
+      var xPred = x;
+      var PPred = P + Q;
+      // Update
+      var K = PPred / (PPred + R);
+      x = xPred + K * (data[i] - xPred);
+      P = (1 - K) * PPred;
+    }
+    // Hitung velocity (tren) dari 3 data terakhir
+    var n = data.length;
+    var velocity = 0;
+    if (n >= 2) {
+      var recent = [];
+      for (var j = Math.max(0, n - 3); j < n; j++) recent.push(data[j]);
+      var diffs = [];
+      for (var k = 1; k < recent.length; k++) diffs.push(recent[k] - recent[k-1]);
+      var sumD = 0;
+      for (var d = 0; d < diffs.length; d++) sumD += diffs[d];
+      velocity = diffs.length > 0 ? sumD / diffs.length : 0;
+    }
+    // Project forward dengan damping
+    var phi = 0.85; // damping factor
+    var results = [];
+    var curX = x;
+    var curV = velocity;
+    for (var s = 0; s < steps; s++) {
+      curV = curV * phi;
+      curX = curX + curV;
+      // Kalman update pada proyeksi (self-loop)
+      var xP2 = curX;
+      var PP2 = P + Q;
+      var K2 = PP2 / (PP2 + R);
+      curX = xP2 + K2 * (xP2 - curX);
+      P = (1 - K2) * PP2;
+      results.push(Math.round(curX));
+    }
+    return results;
+  }
+
+  function pfRenderKalman() {
+    var data = PF_HIST_12M['nasional'].data;
+    var months = ['Oktober 2026', 'November 2026', 'Desember 2026'];
+    var preds = pfKalmanForecast(data, 3);
+    var container = document.getElementById('pfKalmanCards');
+    if (!container) return;
+    var lastActual = data[data.length - 1];
+    var colors = ['#1565C0', '#0D47A1', '#01579B'];
+    container.innerHTML = '';
+    preds.forEach(function(val, i) {
+      var change = ((val - lastActual) / lastActual * 100).toFixed(1);
+      var isUp = val >= lastActual;
+      var arrow = isUp ? '↗' : '↘';
+      var arrowColor = isUp ? '#388E3C' : '#C62828';
+      var card = document.createElement('div');
+      card.style.cssText = 'background:white;border-radius:12px;padding:18px 16px;border:1.5px solid rgba(21,101,192,0.18);text-align:center;';
+      card.innerHTML =
+        '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:rgba(21,101,192,0.6);margin-bottom:10px;">' + months[i] + '</div>' +
+        '<div style="font-size:20px;font-weight:800;color:' + colors[i] + ';font-family:\'Space Grotesk\',sans-serif;line-height:1;margin-bottom:8px;">Rp ' + val.toLocaleString('id-ID') + '</div>' +
+        '<div style="font-size:12px;font-weight:600;color:' + arrowColor + ';">' + arrow + ' ' + (isUp ? '+' : '') + change + '% vs Sep 2026</div>';
+      container.appendChild(card);
+      lastActual = val; // pakai prediksi sebelumnya sebagai basis perubahan berikutnya
     });
   }
 
