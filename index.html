@@ -12613,17 +12613,19 @@ function initMonitoringCharts() {
     // ── 7. Generate label bulan ───────────────────────────────
     var MONTH_NAMES = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
     var _pfNow = new Date();
-    var startMonthIdx = (_pfNow.getMonth() + 1) % 12; // bulan depan (0-based)
-    var startYear      = _pfNow.getMonth() === 11 ? _pfNow.getFullYear() + 1 : _pfNow.getFullYear();
-    var startLabelFull = MONTH_NAMES[startMonthIdx] + ' ' + startYear;
+    // baseMonthIdx = bulan sekarang (September=8), forecast mulai offset+1 = Oktober
+    var baseMonthIdx = _pfNow.getMonth();
+    var baseYear     = _pfNow.getFullYear();
+    var startLabelFull = MONTH_NAMES[baseMonthIdx] + ' ' + baseYear;
 
     function makeFcLabel(offset) {
-      // offset 0 = bulan mulai forecast (bulan depan dari hari ini), dst.
-      var totalM = startMonthIdx + offset;
-      var yr = startYear + Math.floor(totalM / 12);
+      // offset 0 = bulan sekarang (Sep 2026 - titik baseline di grafik)
+      // offset 1 = Oktober 2026 (prediksi pertama yang muncul di tabel)
+      var totalM = baseMonthIdx + offset;
+      var yr = baseYear + Math.floor(totalM / 12);
       var mo = totalM % 12;
       if (offset === 0) return startLabelFull;
-      if (offset === period) return MONTH_NAMES[mo] + ' ' + yr; // label akhir selalu lengkap
+      if (offset === period) return MONTH_NAMES[mo] + ' ' + yr;
       return MONTH_NAMES[mo];
     }
 
@@ -12637,8 +12639,8 @@ function initMonitoringCharts() {
       // Akumulasi trend yang di-damp
       dampedTrendAcc += monthlyTrend * Math.pow(phi, i);
       var raw = basePrice + dampedTrendAcc;
-      // Koreksi musiman
-      var moIdx = (startMonthIdx + i) % 12;
+      // Koreksi musiman (baseMonthIdx = bulan sekarang, i=1 = bulan depan = Oktober)
+      var moIdx = (baseMonthIdx + i) % 12;
       raw *= PF_SEASONAL[moIdx];
       midline.push(Math.round(raw));
     }
